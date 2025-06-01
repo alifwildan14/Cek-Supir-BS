@@ -1,53 +1,105 @@
 // app/api/drivers/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import Driver from '@/models/Driver';
 
-// Mendapatkan satu sopir berdasarkan ID
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  await dbConnect();
-  const { id } = params;
+// Handler untuk GET request (Mengambil satu driver berdasarkan ID)
+export async function GET(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
+  // Validasi apakah ID adalah format ObjectId yang valid
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
+  }
+
   try {
+    await dbConnect();
+
     const driver = await Driver.findById(id);
+
     if (!driver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
-    return NextResponse.json(driver);
+
+    return NextResponse.json(driver, { status: 200 });
   } catch (error) {
-    console.error('Error fetching single driver:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    console.error('API GET Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
 
-// Memperbarui sopir berdasarkan ID
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  await dbConnect();
-  const { id } = params;
+// Handler untuk PUT request (Memperbarui satu driver berdasarkan ID)
+export async function PUT(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
+  // Validasi apakah ID adalah format ObjectId yang valid
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
+  }
+
   try {
     const body = await request.json();
-    const updatedDriver = await Driver.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+    await dbConnect();
+
+    // Validasi dasar untuk body request
+    if (!body || typeof body !== 'object' || Object.keys(body).length === 0) {
+        return NextResponse.json({ message: 'Request body is empty or invalid' }, { status: 400 });
+    }
+
+    const updatedDriver = await Driver.findByIdAndUpdate(
+      id,
+      body,
+      {
+        new: true, // Mengembalikan dokumen yang sudah diperbarui
+        runValidators: true, // Menjalankan validator schema Mongoose saat update
+      }
+    );
+
     if (!updatedDriver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
-    return NextResponse.json(updatedDriver);
+
+    return NextResponse.json(updatedDriver, { status: 200 });
   } catch (error) {
-    console.error('Error updating driver:', error);
-    return NextResponse.json({ message: 'Internal Server Error', details: (error as Error).message }, { status: 500 });
+    console.error('API PUT Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
 
-// Menghapus sopir berdasarkan ID
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  await dbConnect();
-  const { id } = params;
+// Handler untuk DELETE request (Menghapus satu driver berdasarkan ID)
+export async function DELETE(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
+  // Validasi apakah ID adalah format ObjectId yang valid
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
+  }
+
   try {
+    await dbConnect();
+
     const deletedDriver = await Driver.findByIdAndDelete(id);
+
     if (!deletedDriver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
-    return NextResponse.json({ message: 'Driver deleted successfully' });
+
+    return NextResponse.json({ message: 'Driver deleted successfully' }, { status: 200 });
   } catch (error) {
-    console.error('Error deleting driver:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    console.error('API DELETE Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
