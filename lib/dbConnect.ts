@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 
 declare global {
   // Menggunakan 'let' untuk memenuhi aturan ESLint 'no-var'.
+  // Baris eslint-disable-next-line telah dihapus karena tidak lagi diperlukan.
   let mongoose: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
