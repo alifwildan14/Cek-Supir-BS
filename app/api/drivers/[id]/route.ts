@@ -3,22 +3,20 @@ import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import Driver from '@/models/Driver';
 
-// Tambahkan tipe eksplisit untuk context params
-type Context = {
-  params: {
-    id: string;
-  };
-};
+// Gunakan Route Segment Config resmi dari Next.js
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
 
-// Handler GET
-export async function GET(request: NextRequest, context: Context) {
-  const { id } = context.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
   }
 
   try {
     await dbConnect();
+
     const driver = await Driver.findById(id);
     if (!driver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
@@ -34,9 +32,12 @@ export async function GET(request: NextRequest, context: Context) {
   }
 }
 
-// Handler PUT
-export async function PUT(request: NextRequest, context: Context) {
-  const { id } = context.params;
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
   }
@@ -68,15 +69,19 @@ export async function PUT(request: NextRequest, context: Context) {
   }
 }
 
-// Handler DELETE
-export async function DELETE(request: NextRequest, context: Context) {
-  const { id } = context.params;
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ message: 'Invalid driver ID format' }, { status: 400 });
   }
 
   try {
     await dbConnect();
+
     const deletedDriver = await Driver.findByIdAndDelete(id);
     if (!deletedDriver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
