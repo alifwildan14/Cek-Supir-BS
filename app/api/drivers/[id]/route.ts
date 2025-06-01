@@ -1,12 +1,20 @@
+// app/api/drivers/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/dbConnect';
 import Driver from '@/models/Driver';
 
-// Gunakan Route Segment Config resmi dari Next.js
+// Interface untuk konteks params
+interface Params {
+  params: {
+    id: string;
+  };
+}
+
+// Handler untuk GET request (Mengambil satu driver berdasarkan ID)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Params
 ) {
   const { id } = params;
 
@@ -16,25 +24,21 @@ export async function GET(
 
   try {
     await dbConnect();
-
     const driver = await Driver.findById(id);
     if (!driver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
-
     return NextResponse.json(driver, { status: 200 });
   } catch (error) {
-    console.error('API GET Error:', error);
-    return NextResponse.json(
-      { message: 'Internal Server Error', error: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
 
+// Handler untuk PUT request (Memperbarui satu driver berdasarkan ID)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Params
 ) {
   const { id } = params;
 
@@ -61,17 +65,15 @@ export async function PUT(
 
     return NextResponse.json(updatedDriver, { status: 200 });
   } catch (error) {
-    console.error('API PUT Error:', error);
-    return NextResponse.json(
-      { message: 'Internal Server Error', error: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
 
+// Handler untuk DELETE request (Menghapus satu driver berdasarkan ID)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Params
 ) {
   const { id } = params;
 
@@ -81,18 +83,15 @@ export async function DELETE(
 
   try {
     await dbConnect();
-
     const deletedDriver = await Driver.findByIdAndDelete(id);
+
     if (!deletedDriver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
 
     return NextResponse.json({ message: 'Driver deleted successfully' }, { status: 200 });
   } catch (error) {
-    console.error('API DELETE Error:', error);
-    return NextResponse.json(
-      { message: 'Internal Server Error', error: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
   }
 }
