@@ -2,8 +2,7 @@
 import mongoose from 'mongoose';
 
 declare global {
-  // Using 'let' to satisfy the 'no-var' ESLint rule.
-  // eslint-disable-next-line no-unused-vars
+  // Menggunakan 'let' untuk memenuhi aturan ESLint 'no-var'.
   let mongoose: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
@@ -21,7 +20,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
+    'Harap definisikan variabel lingkungan MONGODB_URI di dalam file .env.local'
   );
 }
 
@@ -54,7 +53,7 @@ async function dbConnect(): Promise<typeof mongoose> {
   }
 
   if (!cached.conn) {
-    throw new Error('MongoDB connection was not established.');
+    throw new Error('Koneksi MongoDB tidak berhasil dibuat.');
   }
   return cached.conn;
 }
