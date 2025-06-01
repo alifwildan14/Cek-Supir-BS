@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+Cookies.set('isAuthenticated', 'true', { path: '/', expires: 1/24 });
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');

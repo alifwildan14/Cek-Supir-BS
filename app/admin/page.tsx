@@ -8,7 +8,7 @@ interface Driver {
   _id: string;
   driverName: string;
   plateNumber: string;
-  kirExpiration: string;
+  kirExpiration: string; // Akan menjadi string saat diterima dari API
   busYear: number;
 }
 
@@ -36,16 +36,22 @@ export default function AdminDashboardPage() {
       }
       const data: Driver[] = await res.json();
       setDrivers(data);
-    } catch (err) {
-      setError('Failed to fetch data. Please try again.');
-      console.error(err);
+    } catch (err: unknown) { // Perbaikan: 'any' menjadi 'unknown'
+      let errorMessage = 'Gagal mengambil data. Silakan coba lagi.';
+      if (err instanceof Error) {
+        errorMessage = `Gagal mengambil data: ${err.message}`;
+      } else if (typeof err === 'object' && err !== null && 'details' in err) {
+        errorMessage = `Gagal mengambil data: ${(err as { details: string }).details}`;
+      }
+      setError(errorMessage);
+      console.error('Error fetching drivers:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Cek autentikasi saat komponen dimuat
+    // Cek autentikasi saat komponen dimuat (menggunakan cookie sederhana)
     const isAuthenticated = document.cookie.includes('isAuthenticated=true');
     if (!isAuthenticated) {
       router.replace('/login'); // Redirect ke login jika tidak terautentikasi
@@ -57,7 +63,7 @@ export default function AdminDashboardPage() {
   const handleAddDriver = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Validasi sederhana
+      // Validasi sederhana frontend
       if (!newDriver.driverName || !newDriver.plateNumber || !newDriver.kirExpiration || !newDriver.busYear) {
         alert('Semua kolom harus diisi!');
         return;
@@ -82,8 +88,14 @@ export default function AdminDashboardPage() {
 
       setNewDriver({ driverName: '', plateNumber: '', kirExpiration: '', busYear: '' });
       fetchAllDrivers(); // Refresh daftar setelah menambah
-    } catch (err: any) {
-      setError(`Gagal menambahkan data: ${err.message}`);
+    } catch (err: unknown) { // Perbaikan: 'any' menjadi 'unknown'
+      let errorMessage = 'Gagal menambahkan data.';
+      if (err instanceof Error) {
+        errorMessage = `Gagal menambahkan data: ${err.message}`;
+      } else if (typeof err === 'object' && err !== null && 'details' in err) {
+        errorMessage = `Gagal menambahkan data: ${(err as { details: string }).details}`;
+      }
+      setError(errorMessage);
       console.error('Error adding driver:', err);
     }
   };
@@ -107,6 +119,7 @@ export default function AdminDashboardPage() {
         },
         body: JSON.stringify({
           ...editingDriver,
+          // Pastikan tanggal dan tahun diubah ke format yang benar sebelum dikirim
           kirExpiration: new Date(editingDriver.kirExpiration).toISOString(),
           busYear: parseInt(String(editingDriver.busYear)),
         }),
@@ -119,8 +132,14 @@ export default function AdminDashboardPage() {
 
       setEditingDriver(null); // Keluar dari mode edit
       fetchAllDrivers(); // Refresh daftar
-    } catch (err: any) {
-      setError(`Gagal memperbarui data: ${err.message}`);
+    } catch (err: unknown) { // Perbaikan: 'any' menjadi 'unknown'
+      let errorMessage = 'Gagal memperbarui data.';
+      if (err instanceof Error) {
+        errorMessage = `Gagal memperbarui data: ${err.message}`;
+      } else if (typeof err === 'object' && err !== null && 'details' in err) {
+        errorMessage = `Gagal memperbarui data: ${(err as { details: string }).details}`;
+      }
+      setError(errorMessage);
       console.error('Error updating driver:', err);
     }
   };
@@ -139,8 +158,14 @@ export default function AdminDashboardPage() {
       }
 
       fetchAllDrivers(); // Refresh daftar
-    } catch (err: any) {
-      setError(`Gagal menghapus data: ${err.message}`);
+    } catch (err: unknown) { // Perbaikan: 'any' menjadi 'unknown'
+      let errorMessage = 'Gagal menghapus data.';
+      if (err instanceof Error) {
+        errorMessage = `Gagal menghapus data: ${err.message}`;
+      } else if (typeof err === 'object' && err !== null && 'details' in err) {
+        errorMessage = `Gagal menghapus data: ${(err as { details: string }).details}`;
+      }
+      setError(errorMessage);
       console.error('Error deleting driver:', err);
     }
   };
