@@ -2,16 +2,15 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Driver from '@/models/Driver';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   await dbConnect();
 
   try {
-    const { id } = params;
-    const driver = await Driver.findById(id);
+    const url = new URL(request.url);
+    const parts = url.pathname.split('/');
+    const id = parts[parts.length - 1]; // Ambil id dari URL path
 
+    const driver = await Driver.findById(id);
     if (!driver) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
@@ -23,16 +22,15 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request) {
   await dbConnect();
 
   try {
-    const { id } = params;
-    const deleted = await Driver.findByIdAndDelete(id);
+    const url = new URL(request.url);
+    const parts = url.pathname.split('/');
+    const id = parts[parts.length - 1];
 
+    const deleted = await Driver.findByIdAndDelete(id);
     if (!deleted) {
       return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
