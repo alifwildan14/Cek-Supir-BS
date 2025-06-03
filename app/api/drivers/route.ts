@@ -1,42 +1,33 @@
-// app/api/drivers/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Driver from '@/models/Driver';
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   await dbConnect();
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('query') || '';
-
-    let drivers;
-    if (query) {
-      drivers = await Driver.find({
-        $or: [
-          { driverName: { $regex: query, $options: 'i' } }, // Case-insensitive search
-          { plateNumber: { $regex: query, $options: 'i' } },
-        ],
-      });
-    } else {
-      drivers = await Driver.find({}); // Ambil semua data jika tidak ada query
+    const { id } = params;
+    const driver = await Driver.findById(id);
+    if (!driver) {
+      return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
     }
-
-    return NextResponse.json(drivers);
+    return NextResponse.json(driver);
   } catch (error) {
-    console.error('Error fetching drivers:', error);
+    console.error('Error fetching driver:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   await dbConnect();
   try {
-    const body = await request.json();
-    const newDriver = new Driver(body);
-    await newDriver.save();
-    return NextResponse.json(newDriver, { status: 201 });
+    const { id } = params;
+    const deleted = await Driver.findByIdAndDelete(id);
+    if (!deleted) {
+      return NextResponse.json({ message: 'Driver not found' }, { status: 404 });
+    }
+    return NextResponse.json({ message: 'Driver deleted' });
   } catch (error) {
-    console.error('Error adding driver:', error);
+    console.error('Error deleting driver:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
