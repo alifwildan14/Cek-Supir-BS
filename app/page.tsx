@@ -12,11 +12,11 @@ interface DriverData {
 }
 
 export default async function HomePage({
-  searchParams,
+  searchParams = {},
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | string[] };
 }) {
-  const query = (searchParams?.query as string || '').trim();
+  const query = (searchParams.query as string || '').trim();
 
   let drivers: DriverData[] = [];
   let error: string | null = null;
@@ -32,7 +32,6 @@ export default async function HomePage({
       }).lean();
 
       drivers = JSON.parse(JSON.stringify(rawDrivers));
-
     } catch (e: unknown) {
       console.error('Error fetching drivers on server:', e);
       if (e instanceof Error) {
@@ -46,7 +45,7 @@ export default async function HomePage({
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Cek Data Sopir & Bus</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Cek Data Sopir &amp; Bus</h1>
         <SearchAndDisplay driversInitialData={drivers} initialError={error} />
       </div>
     </div>
