@@ -1,53 +1,40 @@
 // app/page.tsx
-import Driver from '@/models/Driver';
-import dbConnect from '@/lib/dbConnect';
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import SearchAndDisplay from '@/components/SearchAndDisplay';
 
-interface DriverData {
-  _id: string;
-  driverName: string;
-  plateNumber: string;
-  kirExpiration: string;
-  busYear: number;
-}
+export default function HomePage() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query')?.trim() || '';
 
-export default async function HomePage({
-  searchParams = {},
-}: {
-  searchParams: { [key: string]: string | string[] };
-}) {
-  const query = (searchParams.query as string || '').trim();
+  const [drivers, setDrivers] = useState([]);
+  const [error, setError] = useState<string | null>(null);
 
-  let drivers: DriverData[] = [];
-  let error: string | null = null;
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!query) return;
 
-  if (query) {
-    try {
-      await dbConnect();
-      const rawDrivers = await Driver.find({
-        $or: [
-          { driverName: { $regex: query, $options: 'i' } },
-          { plateNumber: { $regex: query, $options: 'i' } },
-        ],
-      }).lean();
+      try {
+        const res = await fetch(`/api/drivers/${encodeURIComponent(query)}`);
+        const data = await res.json();
 
-      drivers = JSON.parse(JSON.stringify(rawDrivers));
-    } catch (e: unknown) {
-      console.error('Error fetching drivers on server:', e);
-      if (e instanceof Error) {
-        error = `Failed to fetch data. Error: ${e.message}`;
-      } else {
-        error = 'An unknown error occurred while fetching data.';
+        if (!res.ok) throw new Error(data.message || 'Unknown error');
+
+        setDrivers(data);
+        setError(null);
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || 'Failed to fetch data.');
       }
-    }
-  }
+    };
+
+    fetchData();
+  }, [query]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Cek Data Sopir &amp; Bus</h1>
-        <SearchAndDisplay driversInitialData={drivers} initialError={error} />
-      </div>
-    </div>
-  );
-}
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          Cek Data Sopir &amp; Bus
